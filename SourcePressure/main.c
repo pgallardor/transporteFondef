@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
     }
 
     printf("Successfully connected to device.\n");
-    
+
     struct termios tty;
     char *snt;
     char *actns;
@@ -81,16 +81,18 @@ int main(int argc, char* argv[])
         }
 
         else if (read_result == 0){
-            printf("Nothing has happened.\n");
+            //printf("Nothing has happened.\n");
+            continue;
         }
 
         else{
             snt = sanitizeInput(buffer);
-            
+
             if (strlen(snt) == 0)
                 continue;
 
             actns = countActions(snt);
+	    printf("Up: %d, down: %d\n", actns[SUBIDO], actns[BAJADO]);
             senddata(actns[SUBIDO], actns[BAJADO]);
 
             free(snt);
@@ -142,8 +144,6 @@ void senddata(char nUp, char nDown)
     char sendbuffer[SEND_BUFFER_SIZE];
     unsigned int type;
     unsigned int length;
-    int data1;
-    int data2;
 
     type = 3;
     memcpy(&sendbuffer[0], &type, 1);
@@ -151,8 +151,8 @@ void senddata(char nUp, char nDown)
     length = 2;
     memcpy(&sendbuffer[1], &length, 2);
 
-    memcpy(&sendbuffer[3], &data1, nUp);
-    memcpy(&sendbuffer[4], &data2, nDown);
+    memcpy(&sendbuffer[3], &nUp, 1);
+    memcpy(&sendbuffer[4], &nDown, 1);
 
     nsend = send(sockfd, sendbuffer, SEND_BUFFER_SIZE, 0);
 

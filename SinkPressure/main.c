@@ -109,32 +109,34 @@ void recvdata()
 
     if(nrecv > 0)
     {
-        printf("**************************************************\n%d header bytes received\n", nrecv);
+        //printf("**************************************************\n%d header bytes received\n", nrecv);
 
         type = 0;
         memcpy(&type, &recvbuffer[0], 1);
-        printf("Type: %u\n", type);
+        //printf("Type: %u\n", type);
 
         timestamp = 0;
         memcpy(&timestamp, &recvbuffer[1], 8);
-        printf("Timestamp: %lu\n", timestamp);
+        //printf("Timestamp: %lu\n", timestamp);
 
         length = 0;
         memcpy(&length, &recvbuffer[9], 2);
-        printf("Length: %u\n", length);
+       // printf("Length: %u\n", length);
 
         // Now receive the data
         nrecv = recv(sockfd, &recvbuffer[11], length, 0);
-        printf("%d data bytes received\n", nrecv);
+        //printf("%d data bytes received\n", nrecv);
 
         n_up = 0;
-        memcpy(&n_up, &recvbuffer[12], 1);
+        memcpy(&n_up, &recvbuffer[11], 1);
 
         n_down = 0;
-        memcpy(&n_down, &recvbuffer[13], 1);
-
-        printf("Up: %d, down: %d", (int)n_up, (int)n_down);
-        printf("\n");
+        memcpy(&n_down, &recvbuffer[12], 1);
+	if (type == 3){
+	        printf("Up: %d, down: %d", (int)n_up, (int)n_down);
+       	 	printf("\n");
+		inserttodatabase(0.0f, 0.0f, (int)n_up, (int)n_down, timestamp);
+	}
 
     }
     else
