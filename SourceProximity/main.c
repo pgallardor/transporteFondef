@@ -21,7 +21,7 @@
 void connecttoserver();
 void senddata(char);
 void signalHandler(int);
-void connecttosensorserver();
+int connecttosensorserver();
 int configTTY(int, struct termios*);
 char sanitizeInput(char*);
 
@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void connecttosensorserver(char *ip)
+int connecttosensorserver(char *ip)
 {
     struct sockaddr_in servaddr; 
 
