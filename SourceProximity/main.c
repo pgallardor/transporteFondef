@@ -19,12 +19,11 @@
 #define DEVICE_BUFFER_SIZE 512
 
 void connecttoserver();
-void senddata(char, char);
+void senddata(char);
 void signalHandler(int);
 void connecttosensorserver();
 int configTTY(int, struct termios*);
-char *sanitizeInput(char*);
-char *countActions(char*);
+char sanitizeInput(char*);
 
 int sockfd, sensor_sockfd;
 int exit_flag = 1;
