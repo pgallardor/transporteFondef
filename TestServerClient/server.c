@@ -16,7 +16,7 @@ void func(int sockfd)
 
 	while (1) { 
 		bzero(buff, MAX);  
-		read(sockfd, buff, sizeof(buff));  
+		read(sockfd, buff, sizeof(buff));
 		printf("From client: %s\nEchoing...\n", buff);
 		write(sockfd, buff, sizeof(buff)); 
 
