@@ -126,18 +126,21 @@ void recvdata()
         // Now receive the data
         nrecv = recv(sockfd, &recvbuffer[11], length, 0);
         //printf("%d data bytes received\n", nrecv);
-
-        n_up = 0;
-        memcpy(&n_up, &recvbuffer[11], 1);
-
-        n_down = 0;
-        memcpy(&n_down, &recvbuffer[12], 1);
-	if (type == 3){
-	        printf("Up: %d, down: %d", (int)n_up, (int)n_down);
-       	 	printf("\n");
-		inserttodatabase(0.0f, 0.0f, (int)n_up, (int)n_down, timestamp);
-	}
-
+        switch(type){
+            case 3:
+                n_up = 0;
+                memcpy(&n_up, &recvbuffer[11], 1);
+                n_down = 0;
+                memcpy(&n_down, &recvbuffer[12], 1);
+	            printf("Up: %d, down: %d\n", (int)n_up, (int)n_down);
+		        inserttodatabase(0.0f, 0.0f, (int)n_up, (int)n_down, timestamp);
+                break;
+            case 128:
+                memcpy(&currentlat, &recvbuffer[11], 8);
+                memcpy(&currentlon, &recvbuffer[19], 8);
+                memcpy(&currentspeed, &recvbuffer[31], 4);
+                break;
+        }
     }
     else
     {
