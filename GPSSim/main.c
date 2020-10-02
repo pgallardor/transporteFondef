@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
     {
         double lat, lon;
         float speed;
-        f = fopen('route.txt', 'r');
+        f = fopen("route.txt", "r");
 
         while(fscanf(f, "%lf %lf %f", &lat, &lon, %speed) != EOF){
             printf("%.3f %.3f %.3f\n", lat, lon, speed);
