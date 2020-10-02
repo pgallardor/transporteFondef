@@ -30,8 +30,9 @@ int exit_flag = 1;
 double currentlen, currentlat;
 //so we can insert to database just when it stopped
 float currentspeed;
+unsigned long last_timestamp = -1;
 MYSQL *MYSQLcon;
-int n_up, n_down;
+int n_up = 0, n_down = 0;
 
 int main()
 {
@@ -53,6 +54,10 @@ int main()
     while(exit_flag)
     {
         recvdata();
+        if (currentspeed > GPS_THRESHOLD_SPEED && n_up + n_down > 0){
+            inserttodatabase(0.0f, 0.0f, n_up, n_down, last_timestamp);
+            n_up = n_down = 0;
+        }
     }
 
     mysql_close(MYSQLcon);
@@ -100,7 +105,7 @@ void recvdata()
     char recvbuffer[RECV_BUFFER_SIZE];
     int i;
     unsigned int type;
-    unsigned long timestamp;
+    //unsigned long timestamp;
     unsigned int length;
     char action;
 
@@ -115,8 +120,7 @@ void recvdata()
         memcpy(&type, &recvbuffer[0], 1);
         //printf("Type: %u\n", type);
 
-        timestamp = 0;
-        memcpy(&timestamp, &recvbuffer[1], 8);
+        memcpy(&last_timestamp, &recvbuffer[1], 8);
         //printf("Timestamp: %lu\n", timestamp);
 
         length = 0;
@@ -127,12 +131,20 @@ void recvdata()
         nrecv = recv(sockfd, &recvbuffer[11], length, 0);
         //printf("%d data bytes received\n", nrecv);
 
-        action = 0;
-        memcpy(&action, &recvbuffer[11], 1);
-	
         switch(type){
             case 4:
+                if (currentspeed > GPS_THRESHOLD_SPEED) break;
+
+                action = 0;
+                memcpy(&action, &recvbuffer[11], 1);
                 printf("Action received: %d", (int)action);
+                if (action == 1) n_up++;
+                else if (action == 2) n_down++;
+                break;
+            case 128:
+                memcpy(&currentlat, &recvbuffer[11], 8);
+                memcpy(&currentlon, &recvbuffer[19], 8);
+                memcpy(&currentspeed, &recvbuffer[31], 4);
                 break;
             default:
                 break;
@@ -142,7 +154,6 @@ void recvdata()
     else
     {
         printf("Connection lost\n");
-
         connecttoserver();
     }
 }
