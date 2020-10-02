@@ -132,8 +132,10 @@ void recvdata()
 	
         switch(type){
             case 4:
-                printf("Action received: %d", (int)action);
+                printf("Action received: %d\n", (int)action);
                 break;
+	    case 2:
+	        printf("Vidiei\n");
             default:
                 break;
         }

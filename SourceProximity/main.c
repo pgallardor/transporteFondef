@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
     signal(SIGPIPE, SIG_IGN);
 
     connecttosensorserver(argv[1]);
-    printf("Successfully connected to sensor server.\n");
+    printf("Successfully connected to sensor server. IP: %s\n", argv[1]);
 
     connecttoserver();
 
@@ -75,8 +75,10 @@ int main(int argc, char* argv[])
         else{
             action = sanitizeInput(buffer);
 
-            if (action != (char)1 && action != (char)2)
-                continue;
+            if (action != (char)1 && action != (char)2){
+                printf("Invalid action\n");
+		continue;
+	    }
 
             senddata(action);
         }
@@ -107,7 +109,7 @@ int connecttosensorserver(char *ip)
 	servaddr.sin_addr.s_addr = inet_addr(ip); 
 	servaddr.sin_port = htons(SENSOR_SERVER_PORT); 
 
-	if (connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) != 0) { 
+	if (connect(sensor_sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) != 0) { 
 		printf("connection with the server failed...\n"); 
 		return -2; 
 	} 
@@ -166,7 +168,7 @@ void senddata(char action)
 
     if(nsend >= 0)
     {
-        printf("**************************************************\n%d bytes sent\n", nsend);
+        printf("Action: %d\n%d bytes sent\n", (int)action, nsend);
     }
     else
     {
