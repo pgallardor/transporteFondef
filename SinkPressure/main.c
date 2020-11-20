@@ -133,7 +133,7 @@ void recvdata()
                 n_down = 0;
                 memcpy(&n_down, &recvbuffer[12], 1);
 	            printf("Up: %d, down: %d\n", (int)n_up, (int)n_down);
-		        inserttodatabase(0.0f, 0.0f, (int)n_up, (int)n_down, timestamp);
+		        inserttodatabase(currentlon, currentlat, (int)n_up, (int)n_down, timestamp);
                 break;
             case 128:
                 memcpy(&currentlat, &recvbuffer[11], 8);

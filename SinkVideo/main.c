@@ -22,16 +22,19 @@
 void connecttoserver();
 void connecttodatabase();
 void recvdata();
-void inserttodatabase(double, double, int, int, unsigned long);
+void inserttodatabase(double, double, int, int, unsigned long, int);
 void signalHandler(int);
+void clear_counters();
 
 int sockfd;
 int exit_flag = 1;
 double currentlen, currentlat;
 //so we can insert to database just when it stopped
+unsigned long last_timestamp = -1;
 float currentspeed;
 MYSQL *MYSQLcon;
-int n_up, n_down;
+//int n_up, n_down;
+int n_up[3], n_down[3];
 
 int main()
 {
@@ -48,11 +51,20 @@ int main()
     connecttodatabase();
 
     currentspeed = GPS_INVALID_SPEED;
+    clear_counters();
 
     // Implement receive logic here
     while(exit_flag)
     {
         recvdata();
+        if (currentspeed > GPS_THRESHOLD_SPEED){
+            int i;
+            for (i = 1; i < 3; i++){
+                if (n_up[i] + n_down[i] > 0)
+                    inserttodatabase(currentlen, currentlat, n_up[i], n_down[i], last_timestamp, i);
+            }
+            clear_counters();
+        }
     }
 
     mysql_close(MYSQLcon);
@@ -94,6 +106,11 @@ void connecttoserver()
     }
 }
 
+void clear_counters(){
+    memset(n_up, 0, 3 * sizeof(int));
+    memset(n_down, 0, 3 * sizeof(int));
+}
+
 void recvdata()
 {
     int nrecv;
@@ -132,7 +149,29 @@ void recvdata()
 	
         switch(type){
             case 2:
+                if (currentspeed > GPS_THRESHOLD_SPEED) break;
+
+                last_timestamp = timestamp;
+                action = 0;
+                memcpy(&action, &recvbuffer[11], 1);
+
+                dev_id = -1;
+                memcpy(&dev_id, &recvbuffer[12], 1);
+
+                if (dev_id < 0){
+                    printf("Error: Unknown device id\n");
+                    break;
+                }
+
                 printf("Action received: %d", (int)action);
+                if (action == 1) n_up[dev_id] += 1;
+                else if (action == 2) n_down[dev_id] += 1;
+                break;
+
+            case 128:
+                memcpy(&currentlat, &recvbuffer[11], 8);
+                memcpy(&currentlon, &recvbuffer[19], 8);
+                memcpy(&currentspeed, &recvbuffer[31], 4);
                 break;
             default:
                 break;
@@ -186,7 +225,7 @@ void connecttodatabase()
     }
 }
 
-void inserttodatabase(double longitude, double latitude, int up, int down, unsigned long timestamp){
+void inserttodatabase(double longitude, double latitude, int up, int down, unsigned long timestamp, int device_id){
     char query[MYSQL_QUERY_LENGTH];
 
     sprintf(query, "INSERT INTO %s VALUES ('%.9f', '%.9f', %i, %i, FROM_UNIXTIME(%lu))",
