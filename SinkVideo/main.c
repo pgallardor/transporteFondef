@@ -228,10 +228,11 @@ void connecttodatabase()
 void inserttodatabase(double longitude, double latitude, int up, int down, unsigned long timestamp, int device_id){
     char query[MYSQL_QUERY_LENGTH];
 
-    sprintf(query, "INSERT INTO %s VALUES ('%.9f', '%.9f', %i, %i, FROM_UNIXTIME(%lu))",
+    sprintf(query, "INSERT INTO %s VALUES (%i, '%.9f', '%.9f', %i, %i, FROM_UNIXTIME(%lu))",
             MYSQL_TABLE_NAME,
-            longitude,
+            device_id,
             latitude,
+            longitude,
             up,
             down,
             timestamp/1000);

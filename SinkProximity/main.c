@@ -154,6 +154,11 @@ void recvdata()
                 dev_id = -1;
                 memcpy(&dev_id, &recvbuffer[12], 1);
 
+                if (dev_id < 0){
+                    printf("Error: Unknown device id\n");
+                    break;
+                }
+                
                 printf("Action received: %d", (int)action);
                 if (action == 1) n_up[dev_id] += 1;
                 else if (action == 2) n_down[dev_id] += 1;
@@ -218,10 +223,11 @@ void connecttodatabase()
 void inserttodatabase(double longitude, double latitude, int up, int down, unsigned long timestamp, int device_id){
     char query[MYSQL_QUERY_LENGTH];
 
-    sprintf(query, "INSERT INTO %s VALUES ('%.9f', '%.9f', %i, %i, FROM_UNIXTIME(%lu))",
+    sprintf(query, "INSERT INTO %s VALUES (%i, '%.9f', '%.9f', %i, %i, FROM_UNIXTIME(%lu))",
             MYSQL_TABLE_NAME,
-            longitude,
+            device_id,
             latitude,
+            longitude,
             up,
             down,
             timestamp/1000);
