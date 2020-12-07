@@ -26,14 +26,15 @@ int configTTY(int, struct termios*);
 char sanitizeInput(char*);
 
 int sockfd, sensor_sockfd;
+int devId = -1;
 int exit_flag = 1;
 int read_result;
 
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2){
-        printf("Please specify sensor server LAN IP. Closing...\n");
+    if (argc < 3){
+        printf("Please specify sensor server LAN IP and device ID. Closing...\n");
         return -1;
     }
 
@@ -48,7 +49,7 @@ int main(int argc, char* argv[])
 
     connecttosensorserver(argv[1]);
     printf("Successfully connected to sensor server.\n");
-
+    devId = atoi(argv[2]);
     connecttoserver();
 
 
@@ -157,10 +158,11 @@ void senddata(char action)
     type = 4;
     memcpy(&sendbuffer[0], &type, 1);
 
-    length = 1;
+    length = 2;
     memcpy(&sendbuffer[1], &length, 2);
 
     memcpy(&sendbuffer[3], &action, 1);
+    memcpy(&sendbuffer[4], &devId, 1)
 
     nsend = send(sockfd, sendbuffer, SEND_BUFFER_SIZE, 0);
 

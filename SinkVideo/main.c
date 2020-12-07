@@ -158,7 +158,7 @@ void recvdata()
                 dev_id = -1;
                 memcpy(&dev_id, &recvbuffer[12], 1);
 
-                if (dev_id < 0){
+                if (dev_id < 0 || dev_id > 2){
                     printf("Error: Unknown device id\n");
                     break;
                 }
