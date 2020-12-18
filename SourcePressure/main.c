@@ -92,8 +92,10 @@ int main(int argc, char* argv[])
                 continue;
 
             actns = countActions(snt);
-	    printf("Up: %d, down: %d\n", actns[SUBIDO], actns[BAJADO]);
-            senddata(actns[SUBIDO], actns[BAJADO]);
+	        printf("Up: %d, down: %d\n", actns[SUBIDO], actns[BAJADO]);
+            int i;
+            for (i = 0; i < actns[SUBIDO]; i++) senddata((char)1)
+            for (i = 0; i < actns[BAJADO]; i++) senddata((char)-1)
 
             free(snt);
             free(actns);
@@ -138,7 +140,7 @@ void connecttoserver()
     }
 }
 
-void senddata(char nUp, char nDown)
+void senddata(char action)
 {
     int nsend;
     char sendbuffer[SEND_BUFFER_SIZE];
@@ -151,8 +153,7 @@ void senddata(char nUp, char nDown)
     length = 2;
     memcpy(&sendbuffer[1], &length, 2);
 
-    memcpy(&sendbuffer[3], &nUp, 1);
-    memcpy(&sendbuffer[4], &nDown, 1);
+    memcpy(&sendbuffer[3], &action, 1);
 
     nsend = send(sockfd, sendbuffer, SEND_BUFFER_SIZE, 0);
 

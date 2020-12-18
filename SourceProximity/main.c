@@ -79,6 +79,7 @@ int main(int argc, char* argv[])
             if (action != (char)1 && action != (char)2)
                 continue;
 
+            int sent_action = action == 1 ? action : -1; 
             senddata(action);
         }
 
@@ -161,8 +162,8 @@ void senddata(char action)
     length = 2;
     memcpy(&sendbuffer[1], &length, 2);
 
-    memcpy(&sendbuffer[3], &action, 1);
-    memcpy(&sendbuffer[4], &devId, 1)
+    memcpy(&sendbuffer[3], &devId, 1)
+    memcpy(&sendbuffer[4], &action, 1);
 
     nsend = send(sockfd, sendbuffer, SEND_BUFFER_SIZE, 0);
 
