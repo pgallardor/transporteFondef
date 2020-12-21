@@ -162,7 +162,7 @@ void senddata(char action)
     length = 2;
     memcpy(&sendbuffer[1], &length, 2);
 
-    memcpy(&sendbuffer[3], &devId, 1)
+    memcpy(&sendbuffer[3], &devId, 1);
     memcpy(&sendbuffer[4], &action, 1);
 
     nsend = send(sockfd, sendbuffer, SEND_BUFFER_SIZE, 0);

@@ -18,7 +18,7 @@
 #define DEVICE_BUFFER_SIZE 512
 
 void connecttoserver();
-void senddata(char, char);
+void senddata(char);
 void signalHandler(int);
 int configTTY(int, struct termios*);
 char *sanitizeInput(char*);
@@ -94,8 +94,8 @@ int main(int argc, char* argv[])
             actns = countActions(snt);
 	        printf("Up: %d, down: %d\n", actns[SUBIDO], actns[BAJADO]);
             int i;
-            for (i = 0; i < actns[SUBIDO]; i++) senddata((char)1)
-            for (i = 0; i < actns[BAJADO]; i++) senddata((char)-1)
+            for (i = 0; i < actns[SUBIDO]; i++) senddata((char)1);
+            for (i = 0; i < actns[BAJADO]; i++) senddata((char)-1);
 
             free(snt);
             free(actns);
