@@ -152,11 +152,11 @@ void recvdata()
                 if (currentspeed > GPS_THRESHOLD_SPEED) break;
 
                 last_timestamp = timestamp;
-                action = 0;
-                memcpy(&action, &recvbuffer[11], 1);
-
                 dev_id = -1;
-                memcpy(&dev_id, &recvbuffer[12], 1);
+                memcpy(&dev_id, &recvbuffer[11], 1);
+
+                action = 0;
+                memcpy(&action, &recvbuffer[12], 1);
 
                 if (dev_id < 0 || dev_id > 2){
                     printf("Error: Unknown device id\n");
