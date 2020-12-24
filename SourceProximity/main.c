@@ -11,7 +11,7 @@
 #include <fcntl.h>
 
 #define SERVER_ADDRESS "localhost"
-#define SOURCE_SERVER_PORT 5000
+#define SOURCE_SERVER_PORT 5001
 #define SENSOR_SERVER_PORT 8080
 #define SEND_BUFFER_SIZE 13
 #define BAJADO 0
@@ -21,7 +21,7 @@
 void connecttoserver();
 void senddata(char);
 void signalHandler(int);
-int connecttosensorserver();
+int connecttosensorserver(char*, int);
 int configTTY(int, struct termios*);
 char sanitizeInput(char*);
 
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
     sigaction(SIGINT, &sigIntHandler, NULL);
     signal(SIGPIPE, SIG_IGN);
 
-    connecttosensorserver(argv[1]);
+    connecttosensorserver(argv[1], 1);
     printf("Successfully connected to sensor server.\n");
     devId = atoi(argv[2]);
     connecttoserver();
@@ -65,8 +65,8 @@ int main(int argc, char* argv[])
         read_result = read(sensor_sockfd, buffer, sizeof(buffer));
 
         if (read_result < 0){
-            printf("Error on reading device. Closing...\n");
-            break;
+            printf("Error on reading device. Attempting to reconnect...\n");
+            connecttosensorserver(argv[1], 1);
         }
 
         else if (read_result == 0){
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-int connecttosensorserver(char *ip)
+int connecttosensorserver(char *ip, int retry)
 {
     struct sockaddr_in servaddr; 
 
@@ -108,9 +108,14 @@ int connecttosensorserver(char *ip)
 	servaddr.sin_addr.s_addr = inet_addr(ip); 
 	servaddr.sin_port = htons(SENSOR_SERVER_PORT); 
 
-	if (connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) != 0) { 
+	if (connect(sensor_sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) != 0) { 
 		printf("connection with the server failed...\n"); 
-		return -2; 
+		if (!retry) return -2;
+	       	while (exit_flag && connect(sensor_sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) != 0){
+			printf("retrying connection to device server\n");
+			sleep(3);
+		}
+		printf("connected to the device server %s\n", ip);
 	} 
 	else
 		printf("connected to the server..\n"); 
@@ -162,7 +167,7 @@ void senddata(char action)
     memcpy(&sendbuffer[1], &length, 2);
 
     memcpy(&sendbuffer[3], &action, 1);
-    memcpy(&sendbuffer[4], &devId, 1)
+    memcpy(&sendbuffer[4], &devId, 1);
 
     nsend = send(sockfd, sendbuffer, SEND_BUFFER_SIZE, 0);
 

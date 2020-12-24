@@ -37,7 +37,7 @@ int main()
 	bzero(&servaddr, sizeof(servaddr)); 
 
 	servaddr.sin_family = AF_INET; 
-	servaddr.sin_addr.s_addr = inet_addr("192.168.0.29"); 
+	servaddr.sin_addr.s_addr = inet_addr("192.168.1.202"); 
 	servaddr.sin_port = htons(PORT); 
 
 	if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) { 
