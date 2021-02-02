@@ -13,7 +13,7 @@
 #define SERVER_ADDRESS "localhost"
 #define SOURCE_SERVER_PORT 5000
 #define SENSOR_SERVER_PORT 8080
-#define SEND_BUFFER_SIZE 13
+#define SEND_BUFFER_SIZE 5
 #define BAJADO 0
 #define SUBIDO 1
 #define DEVICE_BUFFER_SIZE 512
@@ -21,7 +21,7 @@
 void connecttoserver();
 void senddata(char);
 void signalHandler(int);
-int connecttosensorserver();
+int connecttosensorserver(char*, int);
 int configTTY(int, struct termios*);
 char sanitizeInput(char*);
 
@@ -47,11 +47,14 @@ int main(int argc, char* argv[])
     sigaction(SIGINT, &sigIntHandler, NULL);
     signal(SIGPIPE, SIG_IGN);
 
-    connecttosensorserver(argv[1]);
+    connecttosensorserver(argv[1], 1);
     printf("Successfully connected to sensor server. IP: %s\n", argv[1]);
+    
     devId = atoi(argv[2]);
     connecttoserver();
 
+    senddata(1);
+    senddata(-1);
 
     struct termios tty;
     char action;
@@ -65,8 +68,8 @@ int main(int argc, char* argv[])
         read_result = read(sensor_sockfd, buffer, sizeof(buffer));
 
         if (read_result < 0){
-            printf("Error on reading device. Closing...\n");
-            break;
+            printf("Error on reading device. Attempting to reconnect...\n");
+            connecttosensorserver(argv[1], 1);
         }
 
         else if (read_result == 0){
@@ -81,6 +84,7 @@ int main(int argc, char* argv[])
 		continue;
 	    }
 
+            int sent_action = action == 1 ? action : -1; 
             senddata(action);
         }
 
@@ -93,7 +97,7 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-int connecttosensorserver(char *ip)
+int connecttosensorserver(char *ip, int retry)
 {
     struct sockaddr_in servaddr; 
 
@@ -112,7 +116,12 @@ int connecttosensorserver(char *ip)
 
 	if (connect(sensor_sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) != 0) { 
 		printf("connection with the server failed...\n"); 
-		return -2; 
+		if (!retry) return -2;
+	       	while (exit_flag && connect(sensor_sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) != 0){
+			printf("retrying connection to device server\n");
+			sleep(3);
+		}
+		printf("connected to the device server %s\n", ip);
 	} 
 	else
 		printf("connected to the server..\n"); 
@@ -163,8 +172,8 @@ void senddata(char action)
     length = 2;
     memcpy(&sendbuffer[1], &length, 2);
 
-    memcpy(&sendbuffer[3], &action, 1);
-    memcpy(&sendbuffer[4], &devId, 1)
+    memcpy(&sendbuffer[3], &devId, 1);
+    memcpy(&sendbuffer[4], &action, 1);
 
     nsend = send(sockfd, sendbuffer, SEND_BUFFER_SIZE, 0);
 

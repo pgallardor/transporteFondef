@@ -12,13 +12,13 @@
 
 #define SERVER_ADDRESS "localhost"
 #define SOURCE_SERVER_PORT 5000
-#define SEND_BUFFER_SIZE 13
+#define SEND_BUFFER_SIZE 4
 #define BAJADO 0
 #define SUBIDO 1
 #define DEVICE_BUFFER_SIZE 512
 
 void connecttoserver();
-void senddata(char, char);
+void senddata(char);
 void signalHandler(int);
 int configTTY(int, struct termios*);
 char *sanitizeInput(char*);
@@ -55,6 +55,8 @@ int main(int argc, char* argv[])
         printf("%s\n", strerror(errno));
         return -2;
     }
+    senddata((char)1);
+    senddata((char)-1);
 
     printf("Successfully connected to device.\n");
 
@@ -93,7 +95,10 @@ int main(int argc, char* argv[])
 
             actns = countActions(snt);
 	    printf("Up: %d, down: %d\n", actns[SUBIDO], actns[BAJADO]);
-            senddata(actns[SUBIDO], actns[BAJADO]);
+            
+	    int i;
+            for (i = 0; i < actns[SUBIDO]; i++) senddata((char)1);
+            for (i = 0; i < actns[BAJADO]; i++) senddata((char)-1);
 
             free(snt);
             free(actns);
@@ -138,7 +143,7 @@ void connecttoserver()
     }
 }
 
-void senddata(char nUp, char nDown)
+void senddata(char action)
 {
     int nsend;
     char sendbuffer[SEND_BUFFER_SIZE];
@@ -148,11 +153,10 @@ void senddata(char nUp, char nDown)
     type = 3;
     memcpy(&sendbuffer[0], &type, 1);
 
-    length = 2;
+    length = 1;
     memcpy(&sendbuffer[1], &length, 2);
 
-    memcpy(&sendbuffer[3], &nUp, 1);
-    memcpy(&sendbuffer[4], &nDown, 1);
+    memcpy(&sendbuffer[3], &action, 1);
 
     nsend = send(sockfd, sendbuffer, SEND_BUFFER_SIZE, 0);
 
